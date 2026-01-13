@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Task Manager</title>
+    <style>
+        /* --- Modern CSS Reset & Variable Definitions --- */
+        :root {
+            --primary-color: #4f46e5;    /* Indigo */
+            --success-color: #22c55e;    /* Green */
+            --danger-color: #ef4444;     /* Red */
+            --secondary-color: #64748b;  /* Slate */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding-top: 50px;
+        }
+
+        /* --- Main Container --- */
+        .container {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 450px;
+        }
+
+        h1 { 
+            margin-top: 0;
+            font-size: 1.5rem;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        /* --- Form & Inputs --- */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] { 
+            padding: 12px; 
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        button { 
+            padding: 10px; 
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            color: white;
+        }
+
+        button:active { transform: scale(0.98); }
+
+        /* Specific Button Colors */
+        button[value="add"] { background-color: var(--success-color); }
+        button[value="delete"] { background-color: var(--danger-color); }
+        button[value="undo"] { background-color: var(--secondary-color); }
+
+        button:hover { opacity: 0.9; }
+
+        /* --- Task List Styling --- */
+        h2 { font-size: 1.1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
+
+        .task-list { margin-top: 15px; }
+
+        .task { 
+            background: #f1f5f9;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .message { 
+            background-color: #dcfce7;
+            color: #166534;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #94a3b8;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Smart Task Manager</h1>
+
+        {% if message %}
+            <div class="message">{{ message }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <input type="text" name="task" placeholder="What needs to be done?" required>
+            <div class="button-group">
+                <button type="submit" name="action" value="add">Add</button>
+                <button type="submit" name="action" value="delete">Delete</button>
+                <button type="submit" name="action" value="undo">Undo</button>
+            </div>
+        </form>
+
+        <h2>Your Tasks</h2>
+        <div class="task-list">
+            {% for task in tasks %}
+                <div class="task">{{ task }}</div>
+            {% else %}
+                <p class="empty-state">No tasks yet. Add one above!</p>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>

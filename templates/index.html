@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Task Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --high: #ef4444;
+            --medium: #f59e0b;
+            --low: #10b981;
+            --border: #e2e8f0;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px; /* Limits width so it looks good on desktop */
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box; /* Ensures padding doesn't break width */
+        }
+
+        h1 { 
+            margin: 0 0 20px 0; 
+            font-weight: 600; 
+            font-size: 1.4rem; 
+            text-align: center; 
+            color: #0f172a;
+        }
+
+        /* --- Improved Input Section --- */
+        .input-group {
+            display: flex;
+            flex-wrap: wrap; /* Allows items to drop to next line if screen is too thin */
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        input {
+            flex: 1 1 200px; /* Grows to fill space, but won't shrink smaller than 200px */
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        select {
+            flex: 1 1 80px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .button-row {
+            display: flex;
+            width: 100%; /* Makes buttons span the full width of the row */
+            gap: 8px;
+        }
+
+        button {
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1; /* Makes all buttons in the row equal width */
+        }
+
+        .btn-add { background: var(--primary); color: white; }
+        .btn-undo { background: #f8fafc; color: var(--text-dark); border: 1px solid var(--border); }
+
+        /* --- Sorting Section --- */
+        .controls {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 20px;
+            overflow-x: auto; /* Adds scroll if buttons are too wide for mobile */
+            padding-bottom: 5px;
+        }
+
+        .btn-sort {
+            background: #fff;
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            font-size: 11px;
+            white-space: nowrap;
+            padding: 8px 12px;
+        }
+
+        /* --- Task List --- */
+        #tasks { display: flex; flex-direction: column; gap: 10px; }
+
+        .task {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .task-info { display: flex; align-items: center; gap: 10px; }
+
+        .priority-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .p-1 { background: var(--high); }
+        .p-2 { background: var(--medium); }
+        .p-3 { background: var(--low); }
+
+        .btn-delete {
+            background: none;
+            color: #cbd5e1;
+            font-size: 18px;
+            padding: 0;
+            flex: none; /* Prevents X from stretching */
+            width: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Smart Task Manager</h1>
+
+    <div class="input-group">
+        <input id="task" placeholder="What needs to be done?">
+        <select id="priority">
+            <option value="1">High</option>
+            <option value="2">Medium</option>
+            <option value="3">Low</option>
+        </select>
+        <div class="button-row">
+            <button class="btn-add" onclick="addTask()">Add</button>
+            <button class="btn-undo" onclick="undo()">Undo</button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-sort" onclick="loadTasks()">Default</button>
+        <button class="btn-sort" onclick="loadTasks('alpha')">A – Z</button>
+        <button class="btn-sort" onclick="loadTasks('priority')">Priority</button>
+    </div>
+
+    <div id="tasks"></div>
+</div>
+
+<script>
+// (The JavaScript remains the same as your functional version)
+function addTask() {
+    const input = document.getElementById("task");
+    if(!input.value) return;
+    fetch("/add", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            task: input.value,
+            priority: document.getElementById("priority").value
+        })
+    }).then(res => res.json()).then(data => {
+        render(data.tasks);
+        input.value = "";
+    });
+}
+
+function deleteTask(task) {
+    fetch("/delete", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({task})
+    }).then(res => res.json()).then(data => render(data.tasks));
+}
+
+function undo() {
+    fetch("/undo", {method: "POST"})
+    .then(res => res.json())
+    .then(data => render(data.tasks));
+}
+
+function loadTasks(sort="") {
+    fetch("/tasks?sort=" + sort)
+    .then(res => res.json())
+    .then(data => render(data));
+}
+
+function render(tasks) {
+    let div = document.getElementById("tasks");
+    div.innerHTML = "";
+    const labels = { "1": "High", "2": "Medium", "3": "Low" };
+    tasks.forEach(t => {
+        div.innerHTML += `
+            <div class="task">
+                <div class="task-info">
+                    <span class="priority-badge p-${t.priority}">${labels[t.priority]}</span>
+                    <span>${t.task}</span>
+                </div>
+                <button class="btn-delete" onclick="deleteTask('${t.task}')">✕</button>
+            </div>`;
+    });
+}
+loadTasks();
+</script>
+
+</body>
+</html>
